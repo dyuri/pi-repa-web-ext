@@ -1,0 +1,21 @@
+{
+  "name": "pi-repa-web-ext",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "pi": {
+    "extensions": ["./src/index.ts"]
+  },
+  "scripts": {
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.80.3",
+    "@types/node": "^22.10.0",
+    "@types/ws": "^8.5.13",
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>pi web viewer</title>
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body>
+    <header id="topbar">
+      <div id="conn-status" class="pill">connecting…</div>
+      <div id="model-badge" class="pill" hidden></div>
+    </header>
+
+    <main id="messages" aria-live="polite"></main>
+
+    <div id="banner" hidden></div>
+
+    <footer id="composer">
+      <textarea id="input" placeholder="Message…" rows="1"></textarea>
+      <button id="abort-btn" hidden>Abort</button>
+      <button id="send-btn">Send</button>
+    </footer>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
