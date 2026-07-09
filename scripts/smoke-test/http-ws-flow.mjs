@@ -42,17 +42,17 @@ for (let i = 0; i < 30; i++) {
   }
 }
 
-console.log("\n=== HTTP: static page without token (expect 401) ===");
+console.log("\n=== HTTP: static page without token (expect 200 - shell has no secrets) ===");
 let res = await fetch(`http://127.0.0.1:${cfg.port}/`);
-console.log(res.status, await res.text());
-
-console.log("\n=== HTTP: static page with token (expect 200) ===");
-res = await fetch(`http://127.0.0.1:${cfg.port}/?token=${cfg.token}`);
 console.log(res.status, res.headers.get("content-type"), (await res.text()).slice(0, 60));
 
-console.log("\n=== HTTP: app.js with token ===");
-res = await fetch(`http://127.0.0.1:${cfg.port}/app.js?token=${cfg.token}`);
+console.log("\n=== HTTP: app.js without token (expect 200 - same reasoning) ===");
+res = await fetch(`http://127.0.0.1:${cfg.port}/app.js`);
 console.log(res.status, res.headers.get("content-type"));
+
+console.log("\n=== HTTP: unknown path (expect 404) ===");
+res = await fetch(`http://127.0.0.1:${cfg.port}/nope`);
+console.log(res.status);
 
 console.log("\n=== WS: bad token (expect reject) ===");
 const badWs = new WebSocket(`ws://127.0.0.1:${cfg.port}/ws?token=wrong`);

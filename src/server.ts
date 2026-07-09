@@ -109,13 +109,11 @@ export class ViewerServer {
   }
 
   private async handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    // No token check here: these are static, secret-free assets (HTML/CSS/JS shell) referenced
+    // by plain relative URLs, so the browser's own requests for them never carry ?token=. The
+    // actual session data and prompt injection live behind the WS upgrade below, which does
+    // check the token.
     const url = new URL(req.url ?? "/", "http://placeholder");
-    if (!tokenMatches(this.opts.token, this.getToken(url))) {
-      res.writeHead(401, { "content-type": "text/plain; charset=utf-8" });
-      res.end("Unauthorized: missing or invalid token");
-      return;
-    }
-
     const asset = STATIC_ASSETS[url.pathname];
     if (!asset) {
       res.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
