@@ -50,6 +50,12 @@ optional, since agent output can echo untrusted content (fetched web pages, file
 could otherwise carry a script tag into a page holding the bearer token. User/system messages stay
 plain `textContent`.
 
+`thinking` content items (`{ type: "thinking", thinking: string }`, per `docs/session-format.md`)
+render as a collapsed `<details>` chip, same pattern as tool calls (`createThinkingChip()` in
+`app.js`) — collapsed by default, markdown-rendered body. Shared typography lives on the
+`.markdown-body` CSS class, used by both assistant bubbles and thinking-chip bodies; don't
+reintroduce per-bubble duplicate rules if you touch that CSS.
+
 Two shapes worth knowing before touching `web/app.js`:
 
 - `message_start` / `message_end` only fire for `user`, `assistant`, and `toolResult` roles (per

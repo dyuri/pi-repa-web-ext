@@ -55,8 +55,10 @@ function renderMarkdown(text) {
 function appendBubble(role, text) {
   const stick = isNearBottom();
   const bubble = el("div", `msg ${role}`);
-  if (role === "assistant") bubble.innerHTML = renderMarkdown(text);
-  else bubble.textContent = text;
+  if (role === "assistant") {
+    bubble.classList.add("markdown-body");
+    bubble.innerHTML = renderMarkdown(text);
+  } else bubble.textContent = text;
   messagesEl.appendChild(bubble);
   if (stick) scrollToBottom();
   return bubble;
@@ -70,6 +72,7 @@ function clearMessages() {
   messagesEl.innerHTML = "";
   toolChips.clear();
   streamingBubble = null;
+  streamingThinking = null;
 }
 
 // --- Tool chip rendering ----------------------------------------------------
@@ -117,9 +120,41 @@ function finalizeToolChip(toolCallId, toolName, args, result, isError) {
   entry.pre.textContent = formatToolBody(toolName, args, result, result?.details);
 }
 
+// --- Thinking chip rendering -------------------------------------------------
+
+function thinkingOf(content) {
+  if (!Array.isArray(content)) return "";
+  return content
+    .filter((c) => c && c.type === "thinking")
+    .map((c) => c.thinking)
+    .join("\n");
+}
+
+function createThinkingChip() {
+  const stick = isNearBottom();
+  const chip = el("details", "tool-chip thinking-chip");
+  const summary = el("summary");
+  summary.appendChild(el("span", null, "Thinking"));
+  chip.appendChild(summary);
+  const body = el("div", "thinking-body markdown-body");
+  chip.appendChild(body);
+  messagesEl.appendChild(chip);
+  if (stick) scrollToBottom();
+  return { chip, body };
+}
+
 // --- Streaming assistant bubble --------------------------------------------
 
 let streamingBubble = null;
+let streamingThinking = null;
+
+function setStreamingThinking(message) {
+  const text = thinkingOf(message.content);
+  if (!text) return;
+  if (!streamingThinking) streamingThinking = createThinkingChip();
+  streamingThinking.body.innerHTML = renderMarkdown(text);
+  if (isNearBottom()) scrollToBottom();
+}
 
 function setStreamingText(message) {
   const text = textOf((message.content || []).filter((c) => c.type === "text"));
@@ -155,6 +190,9 @@ function renderHydrate(entries) {
         for (const item of msg.content || []) {
           if (item.type === "text") {
             textBuf.push(item.text);
+          } else if (item.type === "thinking") {
+            flush();
+            createThinkingChip().body.innerHTML = renderMarkdown(item.thinking);
           } else if (item.type === "toolCall") {
             flush();
             const result = resultsByCallId.get(item.id);
@@ -277,17 +315,23 @@ function handleServerEvent(evt) {
     case "message_start":
       if (evt.message.role === "assistant") {
         streamingBubble = null;
+        streamingThinking = null;
       }
       break;
     case "message_update":
-      if (evt.message.role === "assistant") setStreamingText(evt.message);
+      if (evt.message.role === "assistant") {
+        setStreamingThinking(evt.message);
+        setStreamingText(evt.message);
+      }
       break;
     case "message_end":
       // message_start/message_end only fire for user, assistant, and toolResult roles.
       // toolResult is skipped here since tool_execution_end already renders it (with pairing).
       if (evt.message.role === "assistant") {
+        setStreamingThinking(evt.message);
         setStreamingText(evt.message);
         streamingBubble = null;
+        streamingThinking = null;
       } else if (evt.message.role === "user") {
         const text = textOf(evt.message.content);
         if (text) appendBubble("user", text);
