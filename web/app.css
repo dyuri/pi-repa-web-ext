@@ -1,14 +1,7 @@
 :root {
-  color-scheme: light dark;
-  --bg: #10121a;
-  --fg: #e8e9ee;
-  --muted: #8a8d9a;
-  --bubble-user: #2b5fd9;
-  --bubble-assistant: #1e2130;
-  --bubble-tool: #2a2416;
-  --bubble-error: #4a1f24;
-  --accent: #5b8dff;
-  --border: #2a2d3c;
+  /* Overridden per-theme at runtime by applyTheme() in app.js (web/themes.js has the values);
+     this is only a fallback in case that hasn't run yet. */
+  color-scheme: dark;
 }
 
 * {
@@ -54,7 +47,7 @@ body {
 }
 
 .pill.disconnected {
-  color: #e05a5a;
+  color: var(--danger);
 }
 
 #messages {
@@ -148,14 +141,14 @@ body {
   color: var(--accent);
 }
 .markdown-body code {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--code-bg);
   border-radius: 4px;
   padding: 0.15em 0.35em;
   font-size: 0.9em;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 .markdown-body pre {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--code-bg);
   border-radius: 8px;
   padding: 8px 10px;
   overflow-x: auto;
@@ -218,7 +211,7 @@ body {
 
 .tool-chip .tool-status.error {
   background: var(--bubble-error);
-  color: #ff9a9a;
+  color: var(--error-fg);
 }
 
 .tool-chip pre {
@@ -252,8 +245,8 @@ body {
   padding: 6px 12px;
   font-size: 13px;
   text-align: center;
-  background: #4a3a1f;
-  color: #ffd589;
+  background: var(--warning-bg);
+  color: var(--warning-fg);
   flex-shrink: 0;
 }
 
@@ -294,5 +287,19 @@ button {
 
 #abort-btn {
   background: var(--bubble-error);
-  color: #ff9a9a;
+  color: var(--error-fg);
+}
+
+#theme-toggle {
+  margin-left: auto;
+  background: var(--bubble-assistant);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
 }

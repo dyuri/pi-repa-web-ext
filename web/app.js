@@ -1,5 +1,7 @@
 // Vanilla JS client. No build step, no framework — see plans/web-interface-extension.md.
 
+import { THEMES } from "./themes.js";
+
 const messagesEl = document.getElementById("messages");
 const connStatusEl = document.getElementById("conn-status");
 const modelBadgeEl = document.getElementById("model-badge");
@@ -7,6 +9,7 @@ const bannerEl = document.getElementById("banner");
 const inputEl = document.getElementById("input");
 const sendBtn = document.getElementById("send-btn");
 const abortBtn = document.getElementById("abort-btn");
+const themeToggleBtn = document.getElementById("theme-toggle");
 
 // --- Token handling -------------------------------------------------------
 
@@ -14,6 +17,50 @@ const params = new URLSearchParams(location.search);
 const urlToken = params.get("token");
 if (urlToken) localStorage.setItem("pi-web-viewer-token", urlToken);
 const token = urlToken || localStorage.getItem("pi-web-viewer-token") || "";
+
+// --- Theme handling ---------------------------------------------------------
+
+let currentThemeId = "default";
+
+function camelToKebab(str) {
+  return str.replace(/([A-Z])/g, "-$1").toLowerCase();
+}
+
+function applyTheme(themeId) {
+  const theme = THEMES[themeId];
+  if (!theme) return;
+
+  const vars = Object.entries(theme)
+    .filter(([k]) => k !== "name" && k !== "colorScheme")
+    .map(([k, v]) => `--${camelToKebab(k)}: ${v};`)
+    .join("\n");
+
+  let styleEl = document.getElementById("theme-styles");
+  if (!styleEl) {
+    styleEl = document.createElement("style");
+    styleEl.id = "theme-styles";
+    document.head.appendChild(styleEl);
+  }
+  styleEl.textContent = `:root { ${vars} }`;
+  document.documentElement.style.colorScheme = theme.colorScheme;
+
+  currentThemeId = themeId;
+  localStorage.setItem("pi-web-viewer-theme", themeId);
+  if (themeToggleBtn) themeToggleBtn.textContent = themeId === "default" ? "☾" : "☀︎";
+}
+
+function initTheme() {
+  const saved = localStorage.getItem("pi-web-viewer-theme");
+  applyTheme(saved && THEMES[saved] ? saved : "default");
+}
+
+if (themeToggleBtn) {
+  themeToggleBtn.addEventListener("click", () => {
+    applyTheme(currentThemeId === "default" ? "solarizedLight" : "default");
+  });
+}
+
+initTheme();
 
 // --- Small render helpers --------------------------------------------------
 

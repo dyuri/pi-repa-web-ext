@@ -27,6 +27,7 @@ const STATIC_ASSETS: Record<string, StaticAsset> = {
   "/index.html": { file: "index.html", contentType: "text/html; charset=utf-8" },
   "/app.js": { file: "app.js", contentType: "text/javascript; charset=utf-8" },
   "/app.css": { file: "app.css", contentType: "text/css; charset=utf-8" },
+  "/themes.js": { file: "themes.js", contentType: "text/javascript; charset=utf-8" },
   "/vendor/marked.js": { file: "vendor/marked.js", contentType: "text/javascript; charset=utf-8" },
   "/vendor/dompurify.js": { file: "vendor/dompurify.js", contentType: "text/javascript; charset=utf-8" },
 };
