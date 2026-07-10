@@ -158,8 +158,14 @@ function setStreamingThinking(message) {
 
 function setStreamingText(message) {
   const text = textOf((message.content || []).filter((c) => c.type === "text"));
-  if (!streamingBubble) streamingBubble = appendBubble("assistant", text);
-  else streamingBubble.innerHTML = renderMarkdown(text);
+  if (!streamingBubble) {
+    // Don't create a bubble until there's actual text — message_update also fires for
+    // thinking/tool-call deltas, and a message can be pure tool-call with no text at all.
+    if (!text) return;
+    streamingBubble = appendBubble("assistant", text);
+  } else {
+    streamingBubble.innerHTML = renderMarkdown(text);
+  }
   if (isNearBottom()) scrollToBottom();
 }
 
@@ -184,7 +190,8 @@ function renderHydrate(entries) {
       } else if (msg.role === "assistant") {
         let textBuf = [];
         const flush = () => {
-          if (textBuf.length) appendBubble("assistant", textBuf.join(""));
+          const text = textBuf.join("");
+          if (text) appendBubble("assistant", text);
           textBuf = [];
         };
         for (const item of msg.content || []) {
