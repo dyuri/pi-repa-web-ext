@@ -28,6 +28,12 @@ don't introduce Vite/React/esbuild/etc. for `web/` without checking first. If ri
 wanted, the wire protocol is close enough to `pi-repa-web`'s that porting its React components is
 plausible (see the plan doc), but that's a bigger conversation, not a default.
 
+`web/vendor/marked.js` and `web/vendor/dompurify.js` are prebuilt UMD browser bundles, checked
+into the repo and loaded via plain `<script>` tags in `index.html` (globals `marked`/`DOMPurify`,
+no bundler involved). They're vendored from the `marked`/`dompurify` devDependencies via
+`npm run vendor` — bump versions in `package.json`, `npm install`, then re-run that script rather
+than hand-editing the vendored files.
+
 ## Wire protocol
 
 `src/wire.ts` documents this, but the load-bearing decision: most server -> client event types
@@ -37,6 +43,12 @@ forwarded close to verbatim — they already carry a `type` field matching pi's 
 connection) and `state` (`isStreaming`/`hasPendingMessages`/model/thinking-level deltas) are
 invented by this extension. Keep new event types consistent with pi's own vocabulary rather than
 inventing parallel names, unless there's a specific reason to diverge.
+
+Assistant message text is rendered as markdown (`marked` + `DOMPurify`, see above) via
+`renderMarkdown()` in `app.js`, and set with `innerHTML` — sanitizing is load-bearing, not
+optional, since agent output can echo untrusted content (fetched web pages, file contents) that
+could otherwise carry a script tag into a page holding the bearer token. User/system messages stay
+plain `textContent`.
 
 Two shapes worth knowing before touching `web/app.js`:
 

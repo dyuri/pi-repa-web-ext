@@ -95,4 +95,5 @@ src/
   commands.ts   /web-viewer-* command registration
 web/
   index.html, app.css, app.js   vanilla chat UI, no framework/bundler
+  vendor/                       prebuilt marked.js + dompurify.js (markdown rendering), see AGENTS.md
 ```

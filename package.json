@@ -4,10 +4,13 @@
   "version": "0.1.0",
   "type": "module",
   "pi": {
-    "extensions": ["./src/index.ts"]
+    "extensions": [
+      "./src/index.ts"
+    ]
   },
   "scripts": {
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "vendor": "cp node_modules/marked/lib/marked.umd.js web/vendor/marked.js && cp node_modules/dompurify/dist/purify.min.js web/vendor/dompurify.js"
   },
   "dependencies": {
     "ws": "^8.18.0"
@@ -16,6 +19,8 @@
     "@earendil-works/pi-coding-agent": "^0.80.3",
     "@types/node": "^22.10.0",
     "@types/ws": "^8.5.13",
+    "dompurify": "^3.4.11",
+    "marked": "^18.0.6",
     "typescript": "^5.7.2"
   }
 }

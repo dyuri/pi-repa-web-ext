@@ -41,9 +41,22 @@ function textOf(content) {
     .join("\n");
 }
 
+// Agent output is untrusted-ish (it can echo fetched web pages, file contents, etc.), so
+// markdown is parsed then run through DOMPurify before ever touching innerHTML.
+marked.setOptions({ gfm: true, breaks: true });
+const markedRenderer = new marked.Renderer();
+markedRenderer.link = (href, title, text) =>
+  `<a href="${href}" target="_blank" rel="noopener noreferrer"${title ? ` title="${title}"` : ""}>${text}</a>`;
+
+function renderMarkdown(text) {
+  return DOMPurify.sanitize(marked.parse(text, { renderer: markedRenderer }));
+}
+
 function appendBubble(role, text) {
   const stick = isNearBottom();
-  const bubble = el("div", `msg ${role}`, text);
+  const bubble = el("div", `msg ${role}`);
+  if (role === "assistant") bubble.innerHTML = renderMarkdown(text);
+  else bubble.textContent = text;
   messagesEl.appendChild(bubble);
   if (stick) scrollToBottom();
   return bubble;
@@ -111,7 +124,7 @@ let streamingBubble = null;
 function setStreamingText(message) {
   const text = textOf((message.content || []).filter((c) => c.type === "text"));
   if (!streamingBubble) streamingBubble = appendBubble("assistant", text);
-  else streamingBubble.textContent = text;
+  else streamingBubble.innerHTML = renderMarkdown(text);
   if (isNearBottom()) scrollToBottom();
 }
 
