@@ -56,7 +56,7 @@ function initTheme() {
 
 if (themeToggleBtn) {
   themeToggleBtn.addEventListener("click", () => {
-    applyTheme(currentThemeId === "default" ? "solarizedLight" : "default");
+    applyTheme(currentThemeId === "default" ? "gruvboxLight" : "default");
   });
 }
 
@@ -164,6 +164,7 @@ function finalizeToolChip(toolCallId, toolName, args, result, isError) {
   const entry = getOrCreateToolChip(toolCallId, toolName, args);
   entry.statusEl.textContent = isError ? "error" : "done";
   entry.statusEl.classList.toggle("error", !!isError);
+  entry.statusEl.classList.toggle("done", !isError);
   entry.pre.textContent = formatToolBody(toolName, args, result, result?.details);
 }
 

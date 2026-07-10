@@ -3,10 +3,9 @@
 ## Goal
 
 Add theme support to the pi web viewer UI while maintaining the "no build step" constraint and
-vanilla HTML/CSS/JS architecture. **v1 scope: exactly two themes — Default (dark, current look)
-and Solarized Light — with Default as the default.** More themes (Solarized Dark, Gruvbox
-Dark/Light, ...) are deferred until the mechanism and the color-variable coverage below have
-proven out on two themes; see "Out of scope for v1".
+vanilla HTML/CSS/JS architecture. **v1 scope: exactly two themes — Gruvbox Dark (the default,
+same shape as the original dark theme) and Gruvbox Light — this is a personal-use tool and
+Gruvbox is enough.** No further themes are planned; see "Out of scope for v1".
 
 ## Current State
 
@@ -56,58 +55,56 @@ dropdown)**
 
 ### Themes (v1: two)
 
-#### 1. **Default** (current, dark) — also the default on first load
+Both are [Gruvbox](https://github.com/morhetz/gruvbox). Backgrounds/borders use the neutral
+dark0-4/light0-4 tones; the dark theme's accents use "bright" tones, the light theme's use
+"faded" tones (bright colors don't have enough contrast on a light background — that's the
+whole reason Gruvbox ships two accent sets).
+
+#### 1. **Gruvbox Dark** — the default (id stays `"default"` — see `applyTheme()` fallback logic)
 
 ```javascript
 default: {
-  name: "Default",
+  name: "Gruvbox Dark",
   colorScheme: "dark",
-  bg: "#10121a",
-  fg: "#e8e9ee",
-  muted: "#8a8d9a",
-  bubbleUser: "#2b5fd9",
-  bubbleAssistant: "#1e2130",
-  bubbleTool: "#2a2416",
-  bubbleError: "#4a1f24",
-  accent: "#5b8dff",
-  border: "#2a2d3c",
-  codeBg: "rgba(255, 255, 255, 0.08)",
-  errorFg: "#ff9a9a",
-  warningBg: "#4a3a1f",
-  warningFg: "#ffd589",
-  danger: "#e05a5a",
+  bg: "#282828",       // dark0
+  fg: "#ebdbb2",        // light1
+  muted: "#928374",     // gray
+  bubbleUser: "#458588", // neutral blue
+  bubbleAssistant: "#3c3836", // dark1
+  bubbleTool: "#504945",      // dark2
+  bubbleError: "#9d0006",     // faded red
+  accent: "#fe8019",    // bright orange
+  border: "#665c54",    // dark3
+  codeBg: "#504945",    // dark2
+  errorFg: "#fb4934",   // bright red
+  warningBg: "#453a1f",
+  warningFg: "#fabd2f", // bright yellow
+  danger: "#fb4934",    // bright red
 }
 ```
 
-#### 2. **Solarized Light**
-
-Based on Ethan Schoonover's Solarized (base3 background, base03 text). The four new keys
-(`codeBg`, `errorFg`, `warningBg`, `warningFg`, `danger`) are new for this plan — chosen for
-contrast against this theme's light backgrounds, not carried over from the dark theme's values.
+#### 2. **Gruvbox Light**
 
 ```javascript
-solarizedLight: {
-  name: "Solarized Light",
+gruvboxLight: {
+  name: "Gruvbox Light",
   colorScheme: "light",
-  bg: "#fdf6e3",
-  fg: "#002b36",
-  muted: "#586e75",
-  bubbleUser: "#268bd2",
-  bubbleAssistant: "#eee8d5",
-  bubbleTool: "#f5f1e8",
-  bubbleError: "#d64949",
-  accent: "#2aa198",
-  border: "#e5dcc9",
-  codeBg: "rgba(0, 0, 0, 0.06)",
+  bg: "#fbf1c7",        // light0
+  fg: "#3c3836",         // dark1
+  muted: "#928374",      // gray
+  bubbleUser: "#076678", // faded blue
+  bubbleAssistant: "#ebdbb2", // light1
+  bubbleTool: "#d5c4a1",      // light2
+  bubbleError: "#9d0006",     // faded red
+  accent: "#af3a03",     // faded orange
+  border: "#bdae93",     // light3
+  codeBg: "rgba(60, 56, 54, 0.1)",
   errorFg: "#fff5f5",
-  warningBg: "#fdf3d3",
-  warningFg: "#7a5f00",
-  danger: "#c0392b",
+  warningBg: "#f2e5bc",
+  warningFg: "#b57614", // faded yellow
+  danger: "#9d0006",    // faded red
 }
 ```
-
-(Exact hex values above are a starting point — spot-check actual contrast during implementation,
-see Testing Checklist.)
 
 ### File Structure
 
@@ -127,8 +124,8 @@ No `styles.css` split (the original draft mentioned one but never used it — dr
 
 ```javascript
 export const THEMES = {
-  default: { name: "Default", colorScheme: "dark", bg: "#10121a", /* ... */ },
-  solarizedLight: { name: "Solarized Light", colorScheme: "light", bg: "#fdf6e3", /* ... */ },
+  default: { name: "Gruvbox Dark", colorScheme: "dark", bg: "#282828", /* ... */ },
+  gruvboxLight: { name: "Gruvbox Light", colorScheme: "light", bg: "#fbf1c7", /* ... */ },
 };
 ```
 
@@ -198,7 +195,7 @@ function setupThemeControl() {
   const label = () => (currentThemeId === "default" ? "☾" : "☀︎");
   btn.textContent = label();
   btn.addEventListener("click", () => {
-    applyTheme(currentThemeId === "default" ? "solarizedLight" : "default");
+    applyTheme(currentThemeId === "default" ? "gruvboxLight" : "default");
     btn.textContent = label();
   });
 }
@@ -209,7 +206,7 @@ setupThemeControl();
 
 `document.documentElement.style.colorScheme` (step: setting it per-theme) makes native controls —
 the toggle button itself, `<textarea>` caret, scrollbars — follow the chosen theme instead of the
-OS preference, which otherwise mismatches when e.g. Solarized Light is selected under a dark-mode
+OS preference, which otherwise mismatches when e.g. Gruvbox Light is selected under a dark-mode
 OS.
 
 #### 5. Style the toggle button
@@ -251,7 +248,7 @@ No new `<script>` tag needed — `app.js` (`type="module"`) imports `themes.js` 
 ### Testing Checklist
 
 - [ ] Load page with no saved theme → defaults to Default (dark)
-- [ ] Toggle → Solarized Light applies instantly, toggle again → back to Default
+- [ ] Toggle → Gruvbox Light applies instantly, toggle again → back to Gruvbox Dark
 - [ ] Refresh page → previously selected theme persists
 - [ ] Code blocks and inline code readable in both themes (the `--code-bg` fix)
 - [ ] Banner (`#banner`) readable in both themes
@@ -264,11 +261,10 @@ No new `<script>` tag needed — `app.js` (`type="module"`) imports `themes.js` 
 
 ## Out of Scope for v1
 
-- Solarized Dark, Gruvbox Dark, Gruvbox Light, and any other additional palettes — add once the
-  two-theme mechanism and the newly-themed elements (code/banner/error/danger colors) have proven
-  out; each additional theme is still "10 lines of JS" per the original draft, just sequenced
-  after v1 ships
-- Switching the toggle to a `<select>` (only worth it once a 3rd theme exists)
+- Additional palettes beyond Gruvbox Dark/Light — this is a personal-use tool, two themes is the
+  intended end state, not a v1-only stopgap. If that changes, each additional theme is still
+  "10 lines of JS" per the original draft.
+- Switching the toggle to a `<select>` (only worth it if a 3rd theme is ever added)
 - `prefers-color-scheme` auto-detection on first load
 - User-authored custom themes (would need to sanitize/validate arbitrary color input before
   injecting into a `<style>` tag — not just a UI addition)

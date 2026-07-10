@@ -209,6 +209,11 @@ body {
   background: var(--border);
 }
 
+.tool-chip .tool-status.done {
+  background: var(--warning-bg);
+  color: var(--warning-fg);
+}
+
 .tool-chip .tool-status.error {
   background: var(--bubble-error);
   color: var(--error-fg);

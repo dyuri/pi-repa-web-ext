@@ -3,42 +3,46 @@
 // (camelCase keys here become kebab-case --variables). "name" and "colorScheme" are metadata,
 // not CSS variables — colorScheme drives document.documentElement.style.colorScheme so native
 // controls (scrollbars, form controls) follow the chosen theme instead of the OS preference.
+//
+// Colors are Gruvbox (https://github.com/morhetz/gruvbox) — "neutral"/dark0-4/light0-4 tones for
+// backgrounds and borders, "bright" tones for the dark theme's accents, "faded" tones for the
+// light theme's (bright colors don't have enough contrast on a light background).
 
 export const THEMES = {
   default: {
-    name: "Default",
+    name: "Gruvbox Dark",
     colorScheme: "dark",
-    bg: "#10121a",
-    fg: "#e8e9ee",
-    muted: "#8a8d9a",
-    bubbleUser: "#2b5fd9",
-    bubbleAssistant: "#1e2130",
-    bubbleTool: "#2a2416",
-    bubbleError: "#4a1f24",
-    accent: "#5b8dff",
-    border: "#2a2d3c",
-    codeBg: "rgba(255, 255, 255, 0.08)",
-    errorFg: "#ff9a9a",
-    warningBg: "#4a3a1f",
-    warningFg: "#ffd589",
-    danger: "#e05a5a",
+    bg: "#282828", // gruvbox dark0
+    fg: "#ebdbb2", // gruvbox light1
+    muted: "#928374", // gruvbox gray
+    bubbleUser: "#458588", // gruvbox neutral blue
+    bubbleAssistant: "#3c3836", // gruvbox dark1
+    bubbleTool: "#504945", // gruvbox dark2
+    bubbleError: "#9d0006", // gruvbox faded red
+    accent: "#fe8019", // gruvbox bright orange
+    border: "#665c54", // gruvbox dark3
+    codeBg: "#504945", // gruvbox dark2
+    errorFg: "#fb4934", // gruvbox bright red
+    warningBg: "#453a1f",
+    warningFg: "#fabd2f", // gruvbox bright yellow
+    danger: "#fb4934", // gruvbox bright red
   },
-  solarizedLight: {
-    name: "Solarized Light",
+  gruvboxLight: {
+    name: "Gruvbox Light",
     colorScheme: "light",
-    bg: "#fdf6e3",
-    fg: "#002b36",
-    muted: "#586e75",
-    bubbleUser: "#268bd2",
-    bubbleAssistant: "#eee8d5",
-    bubbleTool: "#f5f1e8",
-    bubbleError: "#d64949",
-    accent: "#2aa198",
-    border: "#e5dcc9",
-    codeBg: "rgba(0, 0, 0, 0.06)",
+    bg: "#fbf1c7", // gruvbox light0
+    fg: "#3c3836", // gruvbox dark1
+    muted: "#928374", // gruvbox gray
+    bubbleUser: "#076678", // gruvbox faded blue
+    bubbleAssistant: "#ebdbb2", // gruvbox light1
+    bubbleTool: "#d5c4a1", // gruvbox light2
+    bubbleError: "#9d0006", // gruvbox faded red
+    accent: "#af3a03", // gruvbox faded orange
+    border: "#bdae93", // gruvbox light3
+    codeBg: "rgba(60, 56, 54, 0.1)",
     errorFg: "#fff5f5",
-    warningBg: "#fdf3d3",
-    warningFg: "#7a5f00",
-    danger: "#c0392b",
+    warningBg: "#f2e5bc",
+    warningFg: "#b57614", // gruvbox faded yellow
+    danger: "#9d0006", // gruvbox faded red
   },
 };
