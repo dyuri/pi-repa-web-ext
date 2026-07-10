@@ -47,6 +47,12 @@ Two shapes worth knowing before touching `web/app.js`:
 - `tool_execution_end` has no `args` field (confirmed via `scripts/smoke-test/tool-call.mjs`).
   `finalizeToolChip()` in `app.js` relies on the chip already existing from
   `tool_execution_start` — don't assume `args` is populated on the end event.
+- `ctx.isIdle()` is **stale inside the `agent_end` handler**: pi-agent-core's `finishRun()`
+  (which flips `isStreaming` to `false`) runs only after all `agent_end` listeners resolve, so
+  reading state synchronously there always reports "still streaming". `index.ts` defers that
+  specific `refreshState()` call with `setImmediate()` to observe the settled value — without
+  it, the browser's Abort/Steer buttons never reset after a response finishes. `turn_end` and
+  `message_end` don't have this problem (isStreaming spans the whole agent run, not per-turn).
 
 ## Server (`src/server.ts`)
 

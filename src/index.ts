@@ -83,7 +83,11 @@ export default function (pi: ExtensionAPI) {
   });
   pi.on("agent_end", (event, ctx) => {
     broadcast(event);
-    refreshState(ctx);
+    // pi-agent-core flips isStreaming to false in finishRun(), which runs only after all
+    // agent_end listeners (including this one) resolve. ctx.isIdle() here is still stale
+    // (reports streaming), so defer to the next macrotask to observe the settled idle state
+    // — otherwise the client never learns the run actually finished and Abort/Steer stick.
+    setImmediate(() => refreshState(ctx));
   });
   pi.on("turn_start", (event) => broadcast(event));
   pi.on("turn_end", (event, ctx) => {
