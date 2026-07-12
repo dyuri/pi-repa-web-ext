@@ -72,6 +72,16 @@ Two shapes worth knowing before touching `web/app.js`:
   it, the browser's Abort/Steer buttons never reset after a response finishes. `turn_end` and
   `message_end` don't have this problem (isStreaming spans the whole agent run, not per-turn).
 
+`formatToolBody()` in `app.js` special-cases `toolName === "subagent"` (the example extension at
+`pi/packages/coding-agent/examples/extensions/subagent`) to render its `result.details`
+(`SubagentDetails`: per-delegated-agent `messages`, `usage`, `stopReason`, etc.) instead of just
+the summary text in `result.content` — otherwise the chip only shows the final rollup text, none
+of the sub-agent's own tool calls or per-task status the TUI's custom `renderResult()` shows. This
+is a plain-text reimplementation of that TUI renderer's collapsed view, not a shared one — if that
+extension's `SubagentDetails` shape changes, `formatSubagentBody()`/`formatSubagentSingleResult()`
+need updating to match (there's no type-level link between the two, since the extension is
+external to this repo).
+
 ## Server (`src/server.ts`)
 
 - **Token check happens before the WS upgrade completes**, in the `upgrade` handler, not after —

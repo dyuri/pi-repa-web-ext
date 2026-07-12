@@ -126,8 +126,114 @@ function clearMessages() {
 
 const toolChips = new Map(); // toolCallId -> { chip, statusEl, pre }
 
+// --- Subagent tool details (see pi/packages/coding-agent/examples/extensions/subagent) ------
+// Its `details` carries the full sub-conversation (messages, tool calls, usage) per delegated
+// agent, which the default formatToolBody() below would otherwise discard in favor of just the
+// summary text in `result.content`.
+
+function subagentToolCallOf(name, args) {
+  args = args || {};
+  switch (name) {
+    case "bash":
+      return `$ ${args.command ?? "..."}`;
+    case "read":
+      return `read ${args.file_path ?? args.path ?? "..."}`;
+    case "write":
+      return `write ${args.file_path ?? args.path ?? "..."}`;
+    case "edit":
+      return `edit ${args.file_path ?? args.path ?? "..."}`;
+    case "ls":
+      return `ls ${args.path ?? "."}`;
+    case "find":
+      return `find ${args.pattern ?? "*"} in ${args.path ?? "."}`;
+    case "grep":
+      return `grep /${args.pattern ?? ""}/ in ${args.path ?? "."}`;
+    default: {
+      const s = JSON.stringify(args);
+      return `${name} ${s.length > 60 ? `${s.slice(0, 60)}...` : s}`;
+    }
+  }
+}
+
+function subagentFinalOutput(messages) {
+  for (let i = (messages || []).length - 1; i >= 0; i--) {
+    const msg = messages[i];
+    if (msg.role !== "assistant") continue;
+    for (const part of msg.content || []) {
+      if (part.type === "text") return part.text;
+    }
+  }
+  return "";
+}
+
+function subagentIsFailed(r) {
+  if (r.exitCode === -1) return false; // still running (parallel-mode placeholder)
+  return r.exitCode !== 0 || r.stopReason === "error" || r.stopReason === "aborted";
+}
+
+function subagentUsageLine(usage, model) {
+  if (!usage) return "";
+  const parts = [];
+  if (usage.turns) parts.push(`${usage.turns} turn${usage.turns > 1 ? "s" : ""}`);
+  if (usage.input) parts.push(`↑${usage.input}`);
+  if (usage.output) parts.push(`↓${usage.output}`);
+  if (usage.cost) parts.push(`$${usage.cost.toFixed(4)}`);
+  if (model) parts.push(model);
+  return parts.join(" ");
+}
+
+function formatSubagentSingleResult(r) {
+  const icon = r.exitCode === -1 ? "⏳" : subagentIsFailed(r) ? "✗" : "✓";
+  let text = `${icon} ${r.agent} (${r.agentSource})`;
+  if (subagentIsFailed(r) && r.stopReason) text += ` [${r.stopReason}]`;
+  if (r.task) text += `\n  task: ${r.task.length > 120 ? `${r.task.slice(0, 120)}...` : r.task}`;
+  for (const msg of r.messages || []) {
+    if (msg.role !== "assistant") continue;
+    for (const part of msg.content || []) {
+      if (part.type === "toolCall") text += `\n  → ${subagentToolCallOf(part.name, part.arguments)}`;
+    }
+  }
+  if (subagentIsFailed(r) && r.errorMessage) {
+    text += `\n\n  error: ${r.errorMessage}`;
+  } else {
+    const out = subagentFinalOutput(r.messages).trim();
+    if (out) text += `\n\n${out}`;
+  }
+  const usage = subagentUsageLine(r.usage, r.model);
+  if (usage) text += `\n  ${usage}`;
+  return text;
+}
+
+function formatSubagentBody(details) {
+  if (!details || !Array.isArray(details.results) || details.results.length === 0) return null;
+  if (details.mode === "single") return formatSubagentSingleResult(details.results[0]);
+
+  const header =
+    details.mode === "chain"
+      ? `chain — ${details.results.length} step${details.results.length > 1 ? "s" : ""}`
+      : `parallel — ${details.results.length} task${details.results.length > 1 ? "s" : ""}`;
+  const blocks = details.results.map((r, i) => {
+    const label = details.mode === "chain" ? `─── step ${r.step ?? i + 1} ───` : `─── task ${i + 1} ───`;
+    return `${label}\n${formatSubagentSingleResult(r)}`;
+  });
+  return `${header}\n\n${blocks.join("\n\n")}`;
+}
+
+function toolChipLabel(toolName, args) {
+  if (toolName === "subagent" && args) {
+    if (Array.isArray(args.chain) && args.chain.length) return `subagent chain (${args.chain.length})`;
+    if (Array.isArray(args.tasks) && args.tasks.length) return `subagent parallel (${args.tasks.length})`;
+    if (args.agent) return `subagent: ${args.agent}`;
+  }
+  return toolName;
+}
+
 function formatToolBody(toolName, args, result, details) {
   if (toolName === "edit" && details && typeof details.patch === "string") return details.patch;
+  if (toolName === "subagent") {
+    const body = formatSubagentBody(details);
+    if (body) return body;
+  }
   if (result) {
     const text = textOf(result.content);
     if (text) return text;
@@ -139,7 +245,7 @@ function createToolChip(toolCallId, toolName, args) {
   const stick = isNearBottom();
   const chip = el("details", "tool-chip");
   const summary = el("summary");
-  summary.appendChild(el("span", null, toolName));
+  summary.appendChild(el("span", null, toolChipLabel(toolName, args)));
   const status = el("span", "tool-status", "running");
   summary.appendChild(status);
   chip.appendChild(summary);
