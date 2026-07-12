@@ -91,6 +91,21 @@ Token is generated once and persisted to `~/.pi/agent/pi-web-viewer/config.json`
 reused across restarts and session switches so the bookmarked URL keeps working. Don't regenerate
 it on every `session_start` — `/web-viewer-rotate-token` is the only supported way to change it.
 
+## Commands (`src/commands.ts`)
+
+`/web-viewer-url`, `/web-viewer-start`, and `/web-viewer-rotate-token` show the connect URL as a
+scannable QR code (`renderQrTerminal()` in `src/qr.ts`, using `qrcode-generator` for encoding) so
+you don't have to type the URL+token into a phone by hand. Two things worth knowing if you touch
+this:
+
+- It's rendered via `ctx.ui.notify()`, not `ctx.ui.setWidget()` — `setWidget` truncates to
+  `InteractiveMode.MAX_WIDGET_LINES` (10 lines), which a QR code blows past immediately. `notify()`
+  prints into the chat scrollback instead, which has no such cap.
+- The QR uses explicit ANSI black/white (`\x1b[30;40m` / `\x1b[97;107m`) per half-block cell rather
+  than the terminal's default fg/bg. This is deliberate: it makes the code's polarity (dark module
+  = black pixel) correct regardless of the user's terminal theme, which is what makes it scannable
+  camera-side instead of just decorative.
+
 ## Verifying changes
 
 `npm run check` (`tsc --noEmit`) catches type errors but proves nothing about runtime behavior —

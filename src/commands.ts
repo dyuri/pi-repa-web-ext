@@ -1,6 +1,7 @@
 import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
 import { rotateToken, setEnabled, type ViewerConfig } from "./config.ts";
 import { displayHost } from "./network.ts";
+import { renderQrTerminal } from "./qr.ts";
 
 export interface CommandsDeps {
   getConfig: () => ViewerConfig;
@@ -15,6 +16,12 @@ function urlFor(cfg: ViewerConfig): string {
   return `http://${displayHost(cfg.host)}:${cfg.port}/?token=${cfg.token}`;
 }
 
+// Notify messages render in the chat scrollback, which isn't line-limited like setWidget() is —
+// unlike setWidget's 10-line cap, this comfortably fits a QR code.
+function urlWithQr(url: string): string {
+  return `${renderQrTerminal(url).join("\n")}\n${url}`;
+}
+
 export function registerCommands(pi: ExtensionAPI, deps: CommandsDeps): void {
   pi.registerCommand("web-viewer-url", {
     description: "Show the bookmarkable URL for the web viewer",
@@ -23,7 +30,7 @@ export function registerCommands(pi: ExtensionAPI, deps: CommandsDeps): void {
         ctx.ui.notify("Web viewer is stopped. Run /web-viewer-start first.", "warning");
         return;
       }
-      ctx.ui.notify(`Web viewer: ${urlFor(deps.getConfig())}`, "info");
+      ctx.ui.notify(`Web viewer:\n${urlWithQr(urlFor(deps.getConfig()))}`, "info");
     },
   });
 
@@ -33,7 +40,7 @@ export function registerCommands(pi: ExtensionAPI, deps: CommandsDeps): void {
       const next = rotateToken(deps.getConfig());
       deps.setConfig(next);
       if (deps.isRunning()) await deps.restart(ctx);
-      ctx.ui.notify(`Token rotated. New URL: ${urlFor(next)}`, "info");
+      ctx.ui.notify(`Token rotated. New URL:\n${urlWithQr(urlFor(next))}`, "info");
     },
   });
 
@@ -51,7 +58,8 @@ export function registerCommands(pi: ExtensionAPI, deps: CommandsDeps): void {
     handler: async (_args, ctx) => {
       deps.setConfig(setEnabled(deps.getConfig(), true));
       await deps.start(ctx);
-      if (deps.isRunning()) ctx.ui.notify(`Web viewer started: ${urlFor(deps.getConfig())}`, "info");
+      if (deps.isRunning())
+        ctx.ui.notify(`Web viewer started:\n${urlWithQr(urlFor(deps.getConfig()))}`, "info");
     },
   });
 }

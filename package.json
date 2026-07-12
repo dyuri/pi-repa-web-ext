@@ -13,6 +13,7 @@
     "vendor": "cp node_modules/marked/lib/marked.umd.js web/vendor/marked.js && cp node_modules/dompurify/dist/purify.min.js web/vendor/dompurify.js"
   },
   "dependencies": {
+    "qrcode-generator": "^2.0.4",
     "ws": "^8.18.0"
   },
   "devDependencies": {
